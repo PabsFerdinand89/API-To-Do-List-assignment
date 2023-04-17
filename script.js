@@ -36,7 +36,7 @@ var tasksSubmitted = function () {
 var Tasksdelete = function () {
   $.ajax({
     type: 'DELETE',
-    url:,
+    url: 'https://fewd-todolist-api.onrender.com/tasks/:id?api_key=163',
     data:,
     success: function (response, textStatus) {
       filterAllResults();},
