@@ -14,13 +14,13 @@
         <div class="container">
             <Title><h1>To-Do List</h1></Title>
             <div>
-                <h4></h4>
+                <h4>Today is <span id="time-and-date"></span></h4>
             </div>
             <div class="container">
                 <div class="row">
                     <form>
-                        <input type="submit" value="" aria-placeholder="What needs to get done?">
-                        <button>Add</button>
+                        <input type="text" value="" aria-placeholder="What needs to get done?">
+                        <button class="btn-primary" id="add-button">Add</button>
                     </form>          
                 </div>
                 <div class="row">
@@ -29,6 +29,11 @@
                         <button class="filter-item" id="all-button">All</button>
                         <button class="filter-item" id="active-button">Active</button>
                         <button class="filter-item" id="finished-button">Finished</button>
+                    </div>
+                    <div>
+                        <ul id="listed-tasks">
+
+                        </ul>
                     </div>
                 </div>
             </div>
