@@ -45,20 +45,18 @@ $(document).ready(function(){
   
         var filterAllTasks = $('.active').attr('id');
 
-        switch (filterAllTasks) {
-          case '':
-            taskItems = response.tasks;
-            break;
-          case 'all':
-            taskItems = response.tasks;
-            break;
-          case 'active':
-            taskItems = returnActiveTasks;
-            break;
-          case 'completed':
-            taskItems = returnCompletedTasks;
-        };      
-        
+        if (filterAllTasks === '') {
+          taskItems = response.tasks;
+        }
+        if (filterAllTasks === 'all') {
+          taskItems = response.tasks;
+        }
+        if (filterAllTasks === 'active') {
+          taskItems = returnActiveTasks;
+        }
+        if (filterAllTasks === 'completed') {
+          taskItems = returnCompletedTasks;
+        }
 
         var sortTasks = taskItems.sort(function (a, b) {
           return Date.parse(a.created_at) - Date.parse(b.created_at);
