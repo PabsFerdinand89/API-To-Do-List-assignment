@@ -1,143 +1,180 @@
-//API ID= 163
+// my API=163
+//URL: "https://fewd-todolist-api.onrender.com/tasks
 
-const todaysDate = function () {
-  let today = new Date();
-  let dd = String(today.getDate()).padStart(2, '0');
-  let mm = String(today.getMonth() + 1).padStart(2, '0');
-  let yyyy = today.getFullYear();
+$(document).ready(function(){
 
-  $('#currentDate').innerHTML = `Today is ${dd}/${mm}/${yyyy}`;
-  };
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-var filterTasks = function () {
-  $(this).addClass('active');
-  $(this).siblings().removeClass('active');
-  getAndShowAllTasks();
-}
+  let d = new Date();
+  let day = days[d.getDay()];
+  let month = months[d.getMonth()];
+  let date = d.getDate();
+  let year = d.getFullYear();
+  
+  let hour = d.getHours();
+  let amPm = hour >= 12 ? 'pm' : 'am';
+    hour = hour % 12;
+    hour = hour ? hour : 12;
+    hour.toLocaleString;
+  
+  let minute = (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
+  
+  $('#date-and-time').append(`<h6 class="my-0">Today is ${day}, ${month} ${date}, ${year}</h6> ${hour}:${minute}`);
 
-var getAndShowAllTasks = function (){
-  $.ajax({
-    type: 'GET',
-    URL: 'https://fewd-todolist-api.onrender.com/tasks?api_key=163',
-    dataType: 'json',
-    success: function (response, textStatus) {
-      $('#todo-list').empty();
-      response.tasks.forEach(function (task) {
-        $('#todo-list').append(`<div class="row"
-          <li class="list-item"> 
-            <input class="form-input" id="${task.id}" type="checkbox" data-id="${task.id}" ${task.completed ? "checked" : ""}/>
-            <label class="check-label" for=${task.id}>${task.content}</label>
-            <button class="delete-button">Remove</button>
-          </li>
-        </div>`);  
-      });
-      updateList();
+
+  var getAndDisplayAllTasks = function () {
+    $.ajax({
+      type: 'GET',
+      url: 'https://fewd-todolist-api.onrender.com/tasks?api_key=163',
+      dataType: 'json',
+      success: function (response, textStatus) {
+        $('#todo-list').empty();
+        
+        var returnActiveTasks = response.tasks.filter(function (task) {
+          if (!task.completed) {
+            return task.id;
+          }
+        });
+
+        var returnCompletedTasks = response.tasks.filter(function (task) {
+          if (task.completed) {
+            return task.id;
+          }
+        });
+  
+        var filterAllTasks = $('.active').attr('id');
+
+        switch (filterAllTasks) {
+          case '':
+            taskItems = response.tasks;
+            break;
+          case 'all':
+            taskItems = response.tasks;
+            break;
+          case 'active':
+            taskItems = returnActiveTasks;
+            break;
+          case 'completed':
+            taskItems = returnCompletedTasks;
+        };      
+        
+
+        var sortTasks = taskItems.sort(function (a, b) {
+          return Date.parse(a.created_at) - Date.parse(b.created_at);
+        });
+
+        sortTasks.forEach(function (task) {
+          $('#todo-list').append(`
+          <div class="row">  
+            <div class="task">
+              <div class="custom-control checkbox ml-3 mr-5">
+                <input type="checkbox" class="custom-control-input mark-complete" id="customCheck${task.id}" data-id="${task.id}" ${task.completed ? 'checked' : ''} />
+                <label class="custom-control-label" for="customCheck${task.id}"></label>
+              </div>
+            </div>
+            <div colspan="column">
+              <p class="task-content ${task.completed ? 'crossed-out' : ''}">${task.content}</p>
+              <button class="btn delete-button px-3" data-id="${task.id}"><i class="far fa-trash-alt"></i></button>
+            </div>
+          </div>
+          `);
+        })
+        $('.to-do-amount span').innerHTML(returnActiveTasks.length);
       },
-      Error: function (request, textStatus, errorMessage) {
+      error: function (request, textStatus, errorMessage) {
         console.log(errorMessage);
-      },
+      }
     });
-  };
+  }
 
-//new task
-var newTask = function () {
-  $.ajax({
-    type: 'POST',
-    URL: 'https://fewd-todolist-api.onrender.com/tasks/:id?api_key=163',
-    content: 'application/json',
-    dataType: 'json',
-    data: JSON.stringify({
-      task: {
-        content: $('#new-task').val();
-        getAndShowAllTasks();
+
+  var createTask = function () {
+    $.ajax({
+      type: 'POST',
+      url: 'https://fewd-todolist-api.onrender.com/tasks?api_key=163',
+      contentType: 'application/json',
+      dataType: 'json',
+      data: JSON.stringify({
+        task: {
+          content: $('.add-input').val()
         }
       }),
-    success: function (response, textStatus) {
-      $('#new-task').val('');
-      getAndShowAllTasks();
-    },
-    Error: function (request, textStatus, errorMessage) {
-      console.log(errorMessage);
-    },
-  });
-}; 
-
-//delete task
-var TaskDeleted = function (id) {
-  $.ajax({
-    type: 'DELETE',
-    url: 'https://fewd-todolist-api.onrender.com/tasks/' + id + '?api_key=163',
-    success: function (response, textStatus) {
-      getAndShowAllTasks();
-    },
-    Error: function (request, textStatus, errorMessage) {
-      console.log(errorMessage);
-    },
-  });
-};
-
-//task completed
-var tasksCompleted = function (id) {
-  $.ajax({
-    type: 'PUT',
-    url:'https://fewd-todolist-api.onrender.com/tasks/' + id + '/mark_complete?api_key=163',
-    data:'json',
-    success: function (response, textStatus) {
-      getAndShowAllTasks();
-    },
-    Error: function (request, textStatus, errorMessage) {
-      console.log(errorMessage);
-    },
-  });
-};  
-
-//task active
-var tasksIsActive = function (id) {
-  $.ajax({
-    type: 'PUT',
-    url: 'https://fewd-todolist-api.onrender.com/tasks/' + id + '/mark_active?api_key=163',
-    dataType: 'json',
-    Success: function (response, textStatus) {
-      console.log('API request successful');
-      getAndShowAllTasks();
-    },
-    Error: function (request, textStatus, errorMessage) {
-      console.log(errorMessage);
-    },
-  });
-};
+      success: function (response, textStatus) {
+        $('.add-input').val('');
+        getAndDisplayAllTasks();
+      },
+      error: function (request, textStatus, errorMessage) {
+        console.log(errorMessage);
+      }
+    });  
+  }
 
 
-$(document).ready(function (){
-  //show all tasks
-  $('#all-button').on('click', function () {
-    $('.listed-items').each(function (i,e) {
-      $(e).show();
+  var deleteTask = function (id) {
+    $.ajax({
+      type: 'DELETE',
+      url: 'https://fewd-todolist-api.onrender.com/tasks/' + id + '?api_key=163',
+      success: function (response, textStatus) {
+        getAndDisplayAllTasks
+      },
+      error: function (request, textStatus, errorMessage) {
+        console.log(errorMessage);
+      }
     });
-    $(this).addClass('selectedTasks');
-    $(this).siblings().removeClass('selectedTasks');
-  })
+  }
 
-  //newTask event handler
-  $('#new-task').on('submit', function (e) {
+  $(document).on('click', '.delete-button', function () {
+    deleteTask($(this).data('id'))
+  });
+
+  var markTaskComplete = function (id) {
+    $.ajax({
+      type: 'PUT',
+      url: 'https://fewd-todolist-api.onrender.com/tasks/' + id + '/mark_complete?api_key=163',
+      dataType: 'json',
+      success: function (response, textStatus) {
+        getAndDisplayAllTasks();
+      },
+      error: function (request, textStatus, errorMessage) {
+        console.log(errorMessage);
+      }
+    });
+  };
+
+   var markTaskActive = function (id) {
+    $.ajax({
+      type: 'PUT',
+      url: 'https://fewd-todolist-api.onrender.com/tasks/' + id + '/mark_active?api_key=163',
+      dataType: 'json',
+      success: function (response, textStatus) {
+        getAndDisplayAllTasks();
+      },
+      error: function (request, textStatus, errorMessage) {
+        console.log(errorMessage);
+      }
+    });
+  };
+
+  $('#create-task').on('submit', function (e) {
     e.preventDefault();
-    newTask();
+    createTask();
   });
 
-  //taskDeleted event handler
-  $(document).on('click', '.delete', function (){
-    TaskDeleted($(this).data('id'));
-  });
-
-  //event for checked/unchecked checkbox
-  $(document).on('change', '.mark-complete', function (){
+  $(document).on('change', '.mark-complete', function () {
     if (this.checked) {
-      tasksCompleted($(this).data('id'));
-      } else {
-      tasksIsActive($(this).data('id'));
+      markTaskComplete($(this).data('id'));
+    } else {
+      markTaskActive($(this).data('id'));
     }
   });
+    
+  $('.to-do-filter button').on('click', function() {
+    $(this).addClass('active');
+    $(this).siblings().removeClass('active');
+    getAndDisplayAllTasks();
+  });
 
-  todaysDate();
-  getAndShowAllTasks();
+  getAndDisplayAllTasks();
+
 });
